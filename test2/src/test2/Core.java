@@ -10,10 +10,15 @@ import java.awt.Rectangle;
 import java.awt.Robot;
 import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.EOFException;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
@@ -33,11 +38,9 @@ public class Core{
     public void openConfigFile() throws IOException{
         File f = new File(rootFolderName+File.separator+configFileName);
         FileWriter fw;
-        boolean folderExist = true;
         try{
             fw = new FileWriter(f);
         }catch(FileNotFoundException e){
-            folderExist = false;
             fw = null;
             System.out.println("criando diretorio");
             boolean sucess = f.getParentFile().mkdir();
@@ -57,13 +60,58 @@ public class Core{
         if (fw==null){
             throw new IllegalStateException("falha ao criar arquivo");
         }
-        if (folderExist){
-            System.out.println("path existe!");
-            boolean sucess = new File(rootFolderName+File.separator+screenshotsName).mkdir();
-            if (sucess){
-                System.out.println("criando pasta de screenshots");
-            }else{
-                System.out.println("Pasta de screenshots ja criada");
+        fw.write("size = ");
+        fw.write(0);
+        fw.write("\n");
+        fw.close();
+        System.out.println("path existe!");
+        boolean sucess = new File(rootFolderName+File.separator+screenshotsName).mkdir();
+        if (sucess){
+            System.out.println("criando pasta de screenshots");
+        }else{
+            System.out.println("Pasta de screenshots ja criada");
+            adicionarAction();
+        }
+    }
+    
+    public void takeAction(){
+        File f = new File(rootFolderName+File.separator+configFileName);
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader(f));
+            String line;
+            line = reader.readLine();
+            String[] tokens = line.split(" ");
+            int tamanho = Integer.parseInt(tokens[2]);
+            reader.close();
+        } catch (IOException ex) {
+            Logger.getLogger(Core.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    public void adicionarAction(){
+        File f = new File(rootFolderName+File.separator+configFileName);
+        RandomAccessFile raf = null;
+        try {
+            raf = new RandomAccessFile(f,"rw");
+            int contador = 0;
+            try{
+                while (true){
+                    raf.readByte();
+                    contador++;
+                }
+            }catch(EOFException e){
+                System.out.println("fim do arquivo");
+            }
+            System.out.println("tam : " + contador);
+        } catch (Exception ex) {
+            Logger.getLogger(Core.class.getName()).log(Level.SEVERE, null, ex);
+        } finally{
+            if (raf!=null){
+                try {
+                    raf.close();
+                } catch (IOException ex) {
+                    Logger.getLogger(Core.class.getName()).log(Level.SEVERE, null, ex);
+                }
             }
         }
     }
@@ -80,11 +128,5 @@ public class Core{
         } catch (Exception ex) {
             Logger.getLogger(Core.class.getName()).log(Level.SEVERE, null, ex);
         }
-    }
-    
-    public static void main(String[] args) throws AWTException, InterruptedException, IOException {
-        // TODO code application logic here
-        Core a = new Core();
-    }
-    
+    } 
 }
