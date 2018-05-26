@@ -1,0 +1,7 @@
+<numeroDeEntradas><nl>
+for i=1,numeroDeEntrada
+<tipo> -- inteiro, se for 0 entradavazia se 1 entrada sem valor 2 entrada completa
+<valorred><valorgreen><valorblue><nl>
+<cordX>';'<cordY><nl>
+
+OBS: cada entrada esta associada a uma imagem de nome "ss_n<ID>" e pode estar associada a um filtro "filtro<ID>"

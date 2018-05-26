@@ -5,6 +5,7 @@
  */
 package test2;
 
+import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -65,9 +66,18 @@ public class Interface extends javax.swing.JFrame{
 
     private void formKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_formKeyPressed
         // TODO add your handling code here:
-        if (evt.getKeyCode()==java.awt.event.KeyEvent.VK_F){
-            System.out.println("f!");
-            c.takeScreenShot();
+        if (evt.getKeyCode()==KeyEvent.VK_F){
+            c.adicionarAction();
+        }else if (evt.getKeyCode()==KeyEvent.VK_I){
+            c.updateValores();
+        }else if (evt.getKeyCode()==KeyEvent.VK_R){
+            try {
+                c.resetFile();
+            } catch (IOException ex) {
+                Logger.getLogger(Interface.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }else if (evt.getKeyCode()==KeyEvent.VK_X){
+            System.exit(0);
         }else{
             System.out.println("nao f!");
         }
