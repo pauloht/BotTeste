@@ -1,0 +1,9 @@
+import base2
+repeat: 120
+waitTime: 1000
+inicio
+9 click 13 execute
+10 click tryAgain
+11 click tryAgain
+12 click tryAgain
+fim

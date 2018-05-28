@@ -5,94 +5,78 @@
  */
 package test2;
 
+import java.awt.Rectangle;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
+import java.util.Objects;
 
 /**
  *
  * @author FREE
  */
 public class Dados {
-    Long r = null;
-    Long g = null;
-    Long b = null;
+    byte[] hash = null;
+    Rectangle ret;
     int x,y;
     
-    public Dados(int x,int y){
+    public Dados(int x,int y,Rectangle r,byte[] h){
         this.x = x;
         this.y = y;
+        this.hash = h;
+        this.ret = r;
     }
     
-    public Dados(int tipo,RandomAccessFile reader) throws IOException{
+    public Dados(RandomAccessFile reader) throws IOException{
+        this.hash = new byte[16];
         byte[] bInt = new byte[4];
-        byte[] bLong = new byte[8];
         ByteBuffer bbInt = ByteBuffer.wrap(bInt);
-        ByteBuffer bbLong = ByteBuffer.wrap(bLong);
-        System.out.println("tipo : " + tipo);
-        if (tipo==1){
-            reader.readLine();
-            //reader.skipBytes(25);//8*3+1 3longs e \n
-        }else if (tipo==2){
-            for (int i=0;i<3;i++){
-                reader.read(bLong);
-                switch(i){
-                    case 0 :
-                        r = bbLong.getLong();
-                        break;
-                    case 1 :
-                        g = bbLong.getLong();
-                        break;
-                    case 2 :
-                        b = bbLong.getLong();
-                        break;
-                    default :
-                        throw new UnsupportedOperationException("nao esperava-se chegar aqui");
-                }
-                bbLong.clear();
-            }
-            reader.skipBytes(1);//'\n'
-        }else{
-            throw new IllegalArgumentException("esperava-se 1 ou 2, recebeu : " + tipo);
-        }
+        int rx,ry,rw,rh;
+        reader.read(bInt);
+        rx = bbInt.getInt();
+        bbInt.clear();
+        reader.read(bInt);
+        ry = bbInt.getInt();
+        bbInt.clear();
+        reader.read(bInt);
+        rw = bbInt.getInt();
+        bbInt.clear();
+        reader.read(bInt);
+        rh = bbInt.getInt();
+        bbInt.clear();
+        this.ret = new Rectangle(rx, ry, rw, rh);
+        reader.skipBytes(1);//'\n'
         reader.read(bInt);
         this.x = bbInt.getInt();
         bbInt.clear();
         reader.read(bInt);
         this.y = bbInt.getInt();
         reader.skipBytes(1);//'\n'
+        reader.read(this.hash);
+        reader.skipBytes(1);
         bbInt.clear();
     }
     
     public void write(RandomAccessFile raf) throws IOException{
         byte[] bInt = new byte[4];
-        byte[] bLong = new byte[8];
         ByteBuffer bbInt = ByteBuffer.wrap(bInt);
-        ByteBuffer bbLong = ByteBuffer.wrap(bLong);
-        int tipo = 0;//tipo 0 vazio tipo 1 preenchido sem long tipo 2 preenchido com long
-        if (r==null || g==null || b==null){
-            tipo = 1;
-            bbInt.putInt(tipo);
-            raf.write(bInt);
-            bbInt.clear();
-            raf.writeBytes("\n");
-            raf.writeBytes("longlonglonglonglonglong\n");
-        }else{
-            tipo = 2;
-            bbInt.putInt(tipo);
-            raf.write(bInt);
-            bbInt.clear();
-            bbLong.putLong(r);
-            raf.write(bLong);
-            bbLong.clear();
-            bbLong.putLong(g);
-            raf.write(bLong);
-            bbLong.clear();
-            bbLong.putLong(b);
-            raf.write(bLong);
-            bbLong.clear();
-            raf.writeBytes("\n");
-        }
+        bbInt.putInt(ret.x);
+        System.out.println("retx : " + ret.x);
+        raf.write(bInt);
+        bbInt.clear();
+        bbInt.putInt(ret.y);
+        System.out.println("rety : " + ret.y);
+        raf.write(bInt);
+        bbInt.clear();
+        bbInt.putInt(ret.width);
+        System.out.println("retwidth : " + ret.width);
+        raf.write(bInt);
+        bbInt.clear();
+        bbInt.putInt(ret.height);
+        System.out.println("retheight : " + ret.height);
+        raf.write(bInt);
+        bbInt.clear();
+        raf.writeBytes("\n");
         bbInt.putInt(x);
         System.out.println("x : " + x);
         raf.write(bInt);
@@ -101,13 +85,31 @@ public class Dados {
         System.out.println("y : " + y);
         raf.write(bInt);
         raf.writeBytes("\n");
-        raf.close();
+        raf.write(this.hash);
+        raf.writeBytes("\n");
     }
 
     @Override
     public String toString() {
-        return "Dados{" + "r=" + r + ", g=" + g + ", b=" + b + ", x=" + x + ", y=" + y + '}';
+        StringBuilder s = new StringBuilder();
+        for (byte b : hash){
+            s.append((char)b);
+        }
+        return "Dados{" + "ret=" + ret + ", x=" + x + ", y=" + y + ",array : "+s+'}';
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 5;
+        return hash;
     }
     
+    public static String getHashString(byte[] hash){
+        StringBuilder s = new StringBuilder();
+        for (byte b : hash){
+            s.append((char)b);
+        }
+        return(s.toString());
+    }
     
 }

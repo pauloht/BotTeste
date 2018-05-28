@@ -1,0 +1,9 @@
+repeat: 0
+waitTime: 0
+exec menu_43ePlano.txt
+exec 43ePlano.txt
+exec menu_43ePlano.txt
+exec 43ePlano.txt
+exec reparo.txt
+inicio
+fim

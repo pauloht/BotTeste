@@ -5,10 +5,15 @@
  */
 package test2;
 
+import java.awt.MouseInfo;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.event.KeyEvent;
+import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JLabel;
 
 /**
  *
@@ -16,16 +21,34 @@ import java.util.logging.Logger;
  */
 public class Interface extends javax.swing.JFrame{
     private static Core c = null;
+    private int estado = 0;
+    Point retanguloTopoEsquerdo = null;
+    Point retanguloBaixoDireito = null;
+    Point mousePonto;
+    FrameAuxiliar frame;
     public void myInit(){
         try {
             if (c==null){
-                c = new Core();
+                c = new Core(this);
             }
         } catch (IOException ex) {
             Logger.getLogger(Interface.class.getName()).log(Level.SEVERE, null, ex);
         }
-
+        frame = new FrameAuxiliar(this);
     }
+    public void setMessage(String msg){
+        this.lbInfo.setText(msg);
+    }
+    
+    public void showFrameAuxiar(){
+        frame.setVisible(true);
+    }
+    
+    public void executarPlano(String pNome){
+        frame.setVisible(false);
+        c.test(pNome);
+    }
+    
     /**
      * Creates new form Interface
      */
@@ -43,6 +66,8 @@ public class Interface extends javax.swing.JFrame{
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        lbInfo = new javax.swing.JLabel();
+
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyPressed(java.awt.event.KeyEvent evt) {
@@ -50,15 +75,22 @@ public class Interface extends javax.swing.JFrame{
             }
         });
 
+        lbInfo.setText("INFo");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 400, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(lbInfo, javax.swing.GroupLayout.PREFERRED_SIZE, 259, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(141, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 23, Short.MAX_VALUE)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addContainerGap(20, Short.MAX_VALUE)
+                .addComponent(lbInfo)
+                .addContainerGap())
         );
 
         pack();
@@ -67,9 +99,31 @@ public class Interface extends javax.swing.JFrame{
     private void formKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_formKeyPressed
         // TODO add your handling code here:
         if (evt.getKeyCode()==KeyEvent.VK_F){
-            c.adicionarAction();
+            setMessage("estado : " + Integer.toString(estado));
+            switch(estado){
+                case 0 :
+                    estado = 1;
+                    mousePonto = MouseInfo.getPointerInfo().getLocation();
+                    break;
+                case 1 :
+                    retanguloTopoEsquerdo = MouseInfo.getPointerInfo().getLocation();
+                    estado = 2;
+                    break;
+                case 2 :
+                    estado = 0;
+                    retanguloBaixoDireito = MouseInfo.getPointerInfo().getLocation();
+                    Rectangle ret = new Rectangle();
+                    ret.x = retanguloTopoEsquerdo.x;
+                    ret.y = retanguloTopoEsquerdo.y;
+                    ret.height = Math.abs( retanguloTopoEsquerdo.y - retanguloBaixoDireito.y );
+                    ret.width = Math.abs( retanguloTopoEsquerdo.x - retanguloBaixoDireito.x );
+                    c.adicionarAction(mousePonto,ret);
+                    break;
+                default :
+                    throw new UnsupportedOperationException("nue");
+            }
         }else if (evt.getKeyCode()==KeyEvent.VK_I){
-            c.updateValores();
+            showFrameAuxiar();
         }else if (evt.getKeyCode()==KeyEvent.VK_R){
             try {
                 c.resetFile();
@@ -77,9 +131,13 @@ public class Interface extends javax.swing.JFrame{
                 Logger.getLogger(Interface.class.getName()).log(Level.SEVERE, null, ex);
             }
         }else if (evt.getKeyCode()==KeyEvent.VK_X){
+            //c.revalidarDadosNoDisco();
             System.exit(0);
+        }else if (evt.getKeyCode()==KeyEvent.VK_Q){
+            System.out.println("resetando estado para 0");
+            estado = 0;
         }else{
-            System.out.println("nao f!");
+            
         }
     }//GEN-LAST:event_formKeyPressed
 
@@ -119,5 +177,6 @@ public class Interface extends javax.swing.JFrame{
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JLabel lbInfo;
     // End of variables declaration//GEN-END:variables
 }

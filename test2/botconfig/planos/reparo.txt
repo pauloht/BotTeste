@@ -1,0 +1,13 @@
+import reparo
+repeat: 120
+waitTime: 500
+inicio
+1 click tryAgain
+2 click tryAgain
+3 click tryAgain
+4 click tryAgain
+5 click tryAgain
+6 click tryAgain
+7 click tryAgain
+8 click tryAgain
+fim

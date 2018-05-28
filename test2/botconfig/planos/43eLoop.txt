@@ -1,0 +1,9 @@
+repeat: 0
+waitTime: 0
+exec 43eGeral.txt
+exec 43eGeral.txt
+exec 43eGeral.txt
+exec 43eGeral.txt
+exec 43eGeral.txt
+inicio
+fim

@@ -1,6 +1,7 @@
 <numeroDeEntradas><nl>
 for i=1,numeroDeEntrada
 <tipo> -- inteiro, se for 0 entradavazia se 1 entrada sem valor 2 entrada completa
+<retangulotopoesquerdo><retangulotopodireito>
 <valorred><valorgreen><valorblue><nl>
 <cordX>';'<cordY><nl>
 

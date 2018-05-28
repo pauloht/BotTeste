@@ -1,0 +1,22 @@
+import 43eMovimentos
+repeat: 120
+waitTime: 500
+inicio
+1 click tryAgain
+2 click tryAgain
+3 click tryAgain
+4 dragx -1600 tryAgain
+5 click tryAgain
+6 click tryAgain
+18 click tryAgain
+12 click tryAgain
+13 click tryAgain
+15 click 26 execute
+16 click tryAgain
+19 click 26 execute
+22 click tryAgain
+23 click 26 execute
+24 click tryAgain
+25 click 26 execute
+27 click 26 execute
+fim
