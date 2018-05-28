@@ -34,7 +34,7 @@ public class FrameAuxiliar extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
-        tfNomePlano.setText("43eLoop.txt");
+        tfNomePlano.setText("test.txt");
         tfNomePlano.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 tfNomePlanoActionPerformed(evt);

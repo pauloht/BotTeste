@@ -282,120 +282,275 @@ public class Core{
         return(null);
     }
     
+    /*
+        if (repeat==false){
+            repeatCounter = 0;
+            lineRead = reader.readLine();
+            if (lineRead.equals("fim")){
+                break;
+            }
+            tokens = lineRead.split(" ");
+            acao2 = tokens[tokens.length-1];
+        }
+        repeat = false;
+        if (inicioPlanos){
+            int novoEstado = 1000;
+            byte[] hash = null;
+            Dados dado = null;
+            int mouse1 = InputEvent.BUTTON1_DOWN_MASK;
+            if (forking){
+                novoEstado = Integer.parseInt(tokens[tokens.length-2]);
+                dado = dados.get(novoEstado-1);
+                System.out.println("executando forking para " + novoEstado);
+            }else{
+                int escolhas = Integer.parseInt(tokens[0]);
+                novoEstado = Integer.parseInt(tokens[0]);
+                dado = dados.get(novoEstado-1);
+                image = new Robot().createScreenCapture(dado.ret);
+                setGreyScale(image);
+                hash = getImageHash(image);
+                System.out.println("executando " + novoEstado);
+            }
+            if (forking==true || Arrays.equals(hash,dado.hash)){
+                String acao = tokens[1];
+                if (forking){
+                    forking = false;
+                    repeat = true;
+                    acao = "click";
+                    System.out.println("executando forking");
+                }
+                switch (acao){
+                    case "dragx" :
+                        args1 = Integer.parseInt(tokens[2]);
+                        updateInterface("draging");
+                        delta = (args1+0.0)/(10-1.0);
+                        coreRobot.mouseMove(dado.x, dado.y);
+                        coreRobot.mousePress(mouse1);
+                        for (int w=1;w<9;w++){
+                            aux2 = dado.x+delta*w;
+                            coreRobot.mouseMove(aux2.intValue(), dado.y);
+                            Thread.sleep(100);
+                        }
+                        coreRobot.mouseMove(dado.x+args1, dado.y);
+                        coreRobot.mouseRelease(mouse1);
+                        break;
+                    case "click" :
+                        coreRobot.mouseMove(dado.x, dado.y);
+                        coreRobot.mousePress(mouse1);
+                        coreRobot.mouseRelease(mouse1);
+                        break;
+                    default :
+                        throw new UnsupportedOperationException("Nao feito operacao para "+acao);
+                }
+                //coreRobot.mouseMove(dado.x, dado.y);
+                //coreRobot.mousePress(tecla);
+                //coreRobot.mouseRelease(tecla);
+                //coreRobot.mousePress(tecla);
+                //coreRobot.mouseRelease(tecla);
+            }else{
+                //System.out.println("hash1 : " + Dados.getHashString(hash) + "\nhash2 : " + Dados.getHashString(dado.hash));
+                System.out.println("falha");
+                if (repeatCounter >= numeroDeRepeticoes){
+                    ImageIO.write(image, "png", new File(caminhoScreenshot+File.separator+"temp.png"));
+                    System.out.println("nao pode fazer transicao!");
+                    throw new UnsupportedOperationException("todo aqui deveria tirar screenshot e colocar numa pasta erros");
+                }else{
+                    System.out.println("repetindo : " + repeatCounter);
+                    repeat = true;
+                    switch (acao2){
+                        case "tryAgain" :
+                            //donothing
+                            System.out.println("tentando denovo");
+                            break;
+                        case "execute" :
+                            System.out.println("forking");
+                            forking = true;
+                            break;
+                        default : 
+                            throw new UnsupportedOperationException("Sem caso para : "+acao2);
+                    }
+                    repeatCounter++;
+                }
+            }
+            Thread.sleep(tempoEntreTransicao);
+        }else{
+            switch(tokens[0]){
+                case "repeat:":
+                    numeroDeRepeticoes = Integer.parseInt(tokens[1]);
+                    break;
+                case "waitTime:":
+                    tempoEntreTransicao = Integer.parseInt(tokens[1]);
+                    break;
+                case "inicio":
+                    inicioPlanos = true;
+                    break;
+                case "import":
+                    filePath = caminhoPlanos+File.separator+tokens[1];
+                    fDados = new File(filePath);
+                    if (fDados.exists()){
+                        dados = getDadosDeFile(fDados);
+                    }else{
+                        throw new FileNotFoundException("File deveria existir");
+                    }
+                    break;
+                case "exec":
+                    filePath = caminhoPlanos+File.separator+tokens[1];
+                    fDados = new File(filePath);
+                    if (fDados.exists()){
+                        executarPlano(fDados);
+                    }else{
+                        throw new FileNotFoundException("File deveria existir");
+                    }
+                    break;
+                default :
+                    throw new IllegalArgumentException("erro ao ler token : " + tokens[0]);
+            }
+    */ // codigo substituido
+    
     public void executarPlano(File f) throws FileNotFoundException, IOException, AWTException, InterruptedException, NoSuchAlgorithmException{
+        long start = System.nanoTime();
         BufferedReader reader = null;
         try{
         if (f.exists()){
-            updateInterface("Iniciando plano");
+            updateInterface("Iniciando plano " + f.getName());
             ArrayList<Dados> dados = null;
             reader = new BufferedReader(new FileReader(f));
             String lineRead = null;
             String[] tokens = null;
-            Integer tempoEntreTransicao = null;
+            Integer tempoEntreTransicao = 1000;
             Integer numeroDeRepeticoes = null;
-            Integer estadoBuffer = null;
+            coreRobot.setAutoDelay(100);
             boolean inicioPlanos = false;
             boolean repeat = false;
-            int repeatCounter = 0;
-            coreRobot.setAutoDelay(100);
-            int args1 = 0;
-            int xTemp,yTemp;
-            double delta;
-            Double aux2;
-            String acao2 = null;
-            File fDados = null;
-            boolean forking = false;
             String filePath = null;
+            File fDados = null;
+            ArrayList<Dados> opcoes = null;
+            ArrayList<Integer> ponteirosOpcoes = null;
+            byte[] screenHash = null;
+            int contadorFalhas = 0;
+            boolean deveDesviar = false;
+            String desvio = null;
+            int estadoDeDesvio = -1;
+            ArrayList<String> linhasLidas = new ArrayList<>();
+            boolean fallback = false;
+            int fallbackControle = 0;
             while (true){
+                //
                 if (repeat==false){
-                    repeatCounter = 0;
-                    lineRead = reader.readLine();
+                    if (fallback){
+                        System.out.println("realizando fall back de linha : " + linhasLidas.get(linhasLidas.size()-1) + " para " + linhasLidas.get(linhasLidas.size()-1));
+                        lineRead = linhasLidas.get(linhasLidas.size()-2);
+                        fallback = false;
+                        fallbackControle = -1;
+                    }else{
+                        contadorFalhas = 0;
+                        if (fallbackControle==-1){
+                            System.out.println("relendo linha de fallback");
+                            lineRead = linhasLidas.get(linhasLidas.size()-1);
+                            fallbackControle = 0;
+                        }else{
+                            System.out.println("nova linha");
+                            lineRead = reader.readLine();
+                            linhasLidas.add(lineRead);
+                        }
+                    }
+                    System.out.println("linha lida : " + lineRead);
                     if (lineRead.equals("fim")){
                         break;
                     }
                     tokens = lineRead.split(" ");
-                    acao2 = tokens[tokens.length-1];
+                    if (inicioPlanos){
+                        opcoes = new ArrayList<>();
+                        ponteirosOpcoes = new ArrayList<>();
+                        int quantiaDeEstados = Integer.parseInt(tokens[0]);
+                        int ponteiroAuxiliar = 1;
+                        for (int i=0;i<quantiaDeEstados;i++){
+                            int estado = Integer.parseInt(tokens[ponteiroAuxiliar+1]);
+                            int tamanhoEstado = Integer.parseInt(tokens[ponteiroAuxiliar]);
+                            opcoes.add(dados.get(estado-1));
+                            ponteirosOpcoes.add(ponteiroAuxiliar);
+                            ponteiroAuxiliar += tamanhoEstado+1;
+                        }
+                        desvio = tokens[tokens.length-1];
+                    }
                 }
                 repeat = false;
                 if (inicioPlanos){
-                    int novoEstado = 1000;
-                    byte[] hash = null;
-                    Dados dado = null;
-                    int mouse1 = InputEvent.BUTTON1_DOWN_MASK;
-                    if (forking){
-                        novoEstado = Integer.parseInt(tokens[tokens.length-2]);
-                        dado = dados.get(novoEstado-1);
-                        System.out.println("executando forking para " + novoEstado);
-                    }else{
-                        novoEstado = Integer.parseInt(tokens[0]);
-                        dado = dados.get(novoEstado-1);
-                        BufferedImage image = new Robot().createScreenCapture(dado.ret);
-                        setGreyScale(image);
-                        hash = getImageHash(image);
-                        System.out.println("executando " + novoEstado);
-                    }
-                    if (forking==true || Arrays.equals(hash,dado.hash)){
-                        String acao = tokens[1];
-                        if (forking){
-                            forking = false;
-                            repeat = true;
-                            acao = "click";
-                            System.out.println("executando forking");
-                        }
-                        switch (acao){
-                            case "dragx" :
-                                args1 = Integer.parseInt(tokens[2]);
-                                updateInterface("draging");
-                                delta = (args1+0.0)/(10-1.0);
-                                coreRobot.mouseMove(dado.x, dado.y);
-                                coreRobot.mousePress(mouse1);
-                                for (int w=1;w<9;w++){
-                                    aux2 = dado.x+delta*w;
-                                    coreRobot.mouseMove(aux2.intValue(), dado.y);
-                                    Thread.sleep(100);
-                                }
-                                coreRobot.mouseMove(dado.x+args1, dado.y);
-                                coreRobot.mouseRelease(mouse1);
+                    boolean hasHashMatched = false;
+                    int posBuffer = -1;
+                    if (deveDesviar==false){
+                        for (int i=0;i<opcoes.size();i++){
+                            Dados dado = opcoes.get(i);
+                            Rectangle ret  = dado.ret;
+                            BufferedImage image = new Robot().createScreenCapture(ret);
+                            setGreyScale(image);
+                            screenHash = getImageHash(image);
+                            if (Arrays.equals(dado.hash, screenHash)){
+                                posBuffer = i;
+                                hasHashMatched = true;
                                 break;
-                            case "click" :
-                                coreRobot.mouseMove(dado.x, dado.y);
-                                coreRobot.mousePress(mouse1);
-                                coreRobot.mouseRelease(mouse1);
-                                break;
-                            default :
-                                throw new UnsupportedOperationException("Nao feito operacao para "+acao);
-                        }
-                        //coreRobot.mouseMove(dado.x, dado.y);
-                        //coreRobot.mousePress(tecla);
-                        //coreRobot.mouseRelease(tecla);
-                        //coreRobot.mousePress(tecla);
-                        //coreRobot.mouseRelease(tecla);
-                    }else{
-                        //System.out.println("hash1 : " + Dados.getHashString(hash) + "\nhash2 : " + Dados.getHashString(dado.hash));
-                        System.out.println("falha");
-                        if (repeatCounter >= numeroDeRepeticoes){
-                            //ImageIO.write(image, "png", new File(caminhoScreenshot+File.separator+"temp.png"));
-                            System.out.println("nao pode fazer transicao!");
-                            throw new UnsupportedOperationException("todo aqui deveria tirar screenshot e colocar numa pasta erros");
-                        }else{
-                            System.out.println("repetindo : " + repeatCounter);
-                            repeat = true;
-                            switch (acao2){
-                                case "tryAgain" :
-                                    //donothing
-                                    System.out.println("tentando denovo");
-                                    break;
-                                case "execute" :
-                                    System.out.println("forking");
-                                    forking = true;
-                                    break;
-                                default : 
-                                    throw new UnsupportedOperationException("Sem caso para : "+acao2);
                             }
-                            repeatCounter++;
                         }
                     }
-                    Thread.sleep(tempoEntreTransicao);
+                    if (hasHashMatched || deveDesviar){
+                        if (hasHashMatched){
+                            System.out.println("encontrou match");
+                        }
+                        int mouseValor = InputEvent.BUTTON1_DOWN_MASK;
+                        String acao = null;
+                        Dados dado = null;
+                        if (deveDesviar){
+                            System.out.println("desviando para estado " + estadoDeDesvio);
+                            acao = "click";
+                            dado = dados.get(estadoDeDesvio-1);
+                            deveDesviar = false;
+                            repeat = true;
+                        }else{
+                            posBuffer = ponteirosOpcoes.get(posBuffer);
+                            int tamanhoEstado = Integer.parseInt(tokens[posBuffer]);
+                            int estadoI = Integer.parseInt(tokens[posBuffer+1]);
+                            dado =  dados.get(estadoI-1);
+                            acao = tokens[posBuffer+2];
+                        }
+                        if (acao.equals("dragx")){
+                            coreRobot.mouseMove(dado.x, dado.y);
+                            coreRobot.mousePress(mouseValor);
+                            int movimentoX = Integer.parseInt(tokens[posBuffer+3]);
+                            int delta = movimentoX/10;
+                            for (int i=1;i<9;i++){
+                                coreRobot.mouseMove(dado.x+delta*i, dado.y);
+                            }
+                            coreRobot.mouseMove(dado.x+movimentoX, dado.y);
+                            coreRobot.mouseRelease(mouseValor);
+                        }else if (acao.equals("click")){
+                            coreRobot.mouseMove(dado.x, dado.y);
+                            coreRobot.mousePress(mouseValor);
+                            coreRobot.mouseRelease(mouseValor);
+                        }else if (acao.equals("donothing")){
+                            //faz nada lols
+                        }
+                    }else{
+                        contadorFalhas++;
+                        if (contadorFalhas >= 60){
+                            throw new IllegalStateException("Nao conseguiu continuar");
+                        }
+                        System.out.println("repetindo n"+contadorFalhas + " linha : " + lineRead);
+                        repeat = true;
+                        if (desvio.equals("tryAgain")){
+                            
+                        }else if(desvio.equals("execute")){
+                            estadoDeDesvio = Integer.parseInt(tokens[tokens.length-2]);
+                            deveDesviar = true;
+                        }else if(desvio.equals("fallback")){
+                            fallback = true;
+                            repeat = false;
+                        }else{
+                            throw new UnsupportedOperationException("Sem caso de desvio para : " + desvio);
+                        }
+                    }
+                    if (deveDesviar==false){
+                        Thread.sleep(tempoEntreTransicao);
+                    }
                 }else{
                     switch(tokens[0]){
                         case "repeat:":
@@ -445,6 +600,9 @@ public class Core{
                 reader.close();
             }
         }
+        long elapsed = System.nanoTime()-start;
+        double segundos = ((elapsed+0.00)/1000000000.0);
+        System.out.println("para o plano : " + f.getName() + " levou " + segundos + " segs");
     }
     
     public Core(Interface gui) throws IOException{
